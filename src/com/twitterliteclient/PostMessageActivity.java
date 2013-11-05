@@ -5,10 +5,12 @@ import java.io.IOException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -32,23 +34,34 @@ public class PostMessageActivity extends BaseMenuActivity {
 	@InjectView(R.id.post_msg_btn) Button btn;
 	
 	private Message msgService;
+	private Boolean isUpdate;
 	
-	private class PostMessageTask extends AsyncTask<Void, Void, MessageGetDTO> {
+	private class MessageTask extends AsyncTask<Void, Void, MessageGetDTO> {
 
 		private Editable text;
-		private String senderKey;
+		private String key; // this could be either a message key, on the senderKey
+		private Boolean isUpdate;
 
-		public PostMessageTask(String senderKey, Editable text) {
-			this.senderKey = senderKey;
+		public MessageTask(String key, Editable text, Boolean isUpdate) {
+			this.key = key;
 			this.text = text;
+			this.isUpdate = isUpdate;
 		}
-
+		
+		protected MessageGetDTO actionOnMessage() throws GoogleJsonResponseException, IOException {
+			MessageSetDTO dto = new MessageSetDTO();
+			dto.setText(text.toString());
+			if (isUpdate) {
+				msgService.patch(key, dto).execute();
+				return null;
+			} else
+				return msgService.post(key, dto).execute();
+		}
+		
 		@Override
 		protected MessageGetDTO doInBackground(Void... params) {
 			try {
-				MessageSetDTO dto = new MessageSetDTO();
-				dto.setText(text.toString());
-				return msgService.post(senderKey, dto).execute();
+				return actionOnMessage();
 			} catch (final GoogleJsonResponseException e) {
 				runOnUiThread(new Runnable() {
 					@Override
@@ -82,9 +95,11 @@ public class PostMessageActivity extends BaseMenuActivity {
 		@Override
 		protected void onPostExecute(MessageGetDTO dto) {
 			super.onPostExecute(dto);
-			if (dto != null) {
-				Toast.makeText(PostMessageActivity.this, "Message Successfully posted: " + text, Toast.LENGTH_SHORT).show();
-				// could go the UserMessagesList
+			if (dto != null || isUpdate) {
+				Toast.makeText(PostMessageActivity.this, "Message Successfully " + (isUpdate ? "updated: ":"posted: ") + text, Toast.LENGTH_SHORT).show();
+				// could go to the UserMessagesList
+				if (isUpdate)
+					finish();
 			}
 		}
 	}
@@ -96,7 +111,9 @@ public class PostMessageActivity extends BaseMenuActivity {
 		
 		this.msgService = new Message.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), null).build();
 		
-		Views.inject(this);
+		Intent intent = getIntent();
+		
+		this.isUpdate = intent.getBooleanExtra("isUpdate", Boolean.TRUE);
 		
 		btn.setOnClickListener(new OnClickListener() {
 			@Override
@@ -111,10 +128,22 @@ public class PostMessageActivity extends BaseMenuActivity {
 				String currentUserKey = getApp().getCurrentUserKey();
 				
 				if (currentUserKey != null)
-					new PostMessageTask(currentUserKey, text).execute();
+					new MessageTask(currentUserKey, text, isUpdate).execute();
 				else
 					startActivity(new Intent(PostMessageActivity.this, CreateUserOrLoginActivity.class));
 			}
 		});
+	}
+	
+	@Override
+	public View onCreateView(String name, Context context, AttributeSet attrs) {
+		Intent intent = getIntent();
+		Views.inject(this);
+		Bundle dto = intent.getBundleExtra("dto");
+		if (dto != null) {
+			msgText.setText(dto.getString("text"));
+			btn.setText("Update");
+		}
+		return super.onCreateView(name, context, attrs);
 	}
 }

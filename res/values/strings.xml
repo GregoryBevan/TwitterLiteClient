@@ -14,5 +14,6 @@
     <string name="post">Post</string>
     <string name="message_text_placeholder">Message Text placeholder</string>
     <string name="msg_date_placeholder">dd/MM/yyyy</string>
+    <string name="sender_login">sender login</string>
 
 </resources>

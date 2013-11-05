@@ -1,34 +1,40 @@
 package com.twitterliteclient;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import butterknife.InjectView;
 import butterknife.Views;
 
 import com.appspot.twitterlitesample.message.Message;
-import com.appspot.twitterlitesample.message.model.JsonMap;
 import com.appspot.twitterlitesample.message.model.MessageGetDTO;
 import com.appspot.twitterlitesample.message.model.MessagesCollection;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.json.gson.GsonFactory;
 
 public class UserMessagesActivity extends BaseMenuActivity {
+	
 	@InjectView(R.id.user_msgs) ListView msgsList;
 	
 	private Message msgService;
-	
 	private static final int PAGE_SIZE = 10; 
 	private String currentCursor = null;
+	
+	MessagesAdapter mAdapter;
 	
 	private class GetUserMessagesTask extends AsyncTask<Void, Void, List<MessageGetDTO>> {
 
 		private String senderKey;
+		
+		
 
 		public GetUserMessagesTask(String senderKey) {
 			this.senderKey = senderKey;
@@ -52,8 +58,21 @@ public class UserMessagesActivity extends BaseMenuActivity {
 		protected void onPostExecute(List<MessageGetDTO> dtos) {
 			super.onPostExecute(dtos);
 			if (dtos != null) {
-				MessagesAdapter messagesAdapter = new MessagesAdapter(UserMessagesActivity.this, R.layout.message_item, dtos.toArray(new MessageGetDTO[dtos.size()]));
-				msgsList.setAdapter(messagesAdapter);
+				mAdapter = new MessagesAdapter(UserMessagesActivity.this, R.layout.message_item, dtos.toArray(new MessageGetDTO[dtos.size()]));
+				msgsList.setAdapter(mAdapter);
+				
+				msgsList.setOnItemClickListener(new OnItemClickListener() {
+					@Override
+					public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+						MessageGetDTO dto = mAdapter.getItem(position);
+						Intent intent = new Intent(UserMessagesActivity.this, PostMessageActivity.class);
+						Bundle b = new Bundle();
+						b.putString("text", dto.getText());
+						b.putString("key", dto.getMessageKey());
+						intent.putExtra("dto", b);
+						intent.putExtra("isUpdate", true);
+					}
+				});
 			} else {
 				Log.d("USER MESSAGES", "PROBLEM ON ADAPTER");
 			}

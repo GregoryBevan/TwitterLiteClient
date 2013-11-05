@@ -27,12 +27,13 @@ public final class R {
         public static final int create_button=0x7f080002;
         public static final int email=0x7f080001;
         public static final int login=0x7f080000;
-        public static final int msg=0x7f080005;
+        public static final int msg=0x7f080006;
         public static final int msg_date=0x7f080003;
-        public static final int msg_text=0x7f080004;
-        public static final int post_msg=0x7f080008;
-        public static final int post_msg_btn=0x7f080006;
-        public static final int user_msgs=0x7f080007;
+        public static final int msg_text=0x7f080005;
+        public static final int post_msg=0x7f080009;
+        public static final int post_msg_btn=0x7f080007;
+        public static final int sender_login=0x7f080004;
+        public static final int user_msgs=0x7f080008;
     }
     public static final class layout {
         public static final int create_user_layout=0x7f030000;
@@ -56,6 +57,7 @@ public final class R {
         public static final int post=0x7f05000a;
         public static final int post_message=0x7f050008;
         public static final int post_msg_hint=0x7f050009;
+        public static final int sender_login=0x7f05000d;
         public static final int user_msgs=0x7f050007;
     }
     public static final class style {

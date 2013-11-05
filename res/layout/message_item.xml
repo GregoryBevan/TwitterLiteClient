@@ -2,17 +2,29 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:paddingTop="10dp"
+    android:paddingLeft="14dp"
+    android:paddingRight="14dp"
     android:background="@android:color/white">
     
     <TextView
         android:id="@+id/msg_date" 
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-       	android:layout_marginTop="14dp"
-       	android:layout_marginLeft="14dp"
-       	android:layout_marginBottom="5dp"
        	
         android:text="@string/msg_date_placeholder"
+        android:textColor="@android:color/black"
+        android:textSize="12sp"
+        />
+    
+    <TextView
+        android:id="@+id/sender_login" 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+       	
+       	android:layout_alignParentRight="true"
+       	
+        android:text="@string/sender_login"
         android:textColor="@android:color/black"
         android:textSize="12sp"
         />
@@ -21,14 +33,13 @@
         android:id="@+id/msg_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="14dp"
         android:layout_below="@+id/msg_date"
         
+        android:layout_marginTop="10dp"
         
         android:text="@string/message_text_placeholder"
         android:textColor="@android:color/black"
         android:textSize="16sp"
         android:textStyle="bold" />
-    
     
 </RelativeLayout>

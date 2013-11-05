@@ -1,5 +1,9 @@
 package com.twitterliteclient;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,13 +31,18 @@ public class MessagesAdapter extends ArrayAdapter<MessageGetDTO> {
 			holder = new ViewHolder(convertView);
 			convertView.setTag(holder);
 		}
-		MessageGetDTO item = getItem(position);
-		holder.date.setText((String)item.get("creation"));
-		holder.text.setText((String)item.get("text"));
+		MessageGetDTO msg = getItem(position);
+		
+		String date = new SimpleDateFormat("dd/MM/yyyy", Locale.US).format(new Date(msg.getCreation()));
+		holder.date.setText(date);
+		holder.text.setText(msg.getText());
+		holder.login.setText(msg.getSender().getLogin());
+		
 		return convertView;
 	}
 
 	class ViewHolder {
+		@InjectView(R.id.sender_login) TextView	login;
 		@InjectView(R.id.msg_date) TextView	date;
 		@InjectView(R.id.msg_text) TextView	text;
 		

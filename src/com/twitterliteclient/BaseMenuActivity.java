@@ -31,7 +31,6 @@ public class BaseMenuActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		
-		
 		switch (item.getItemId()) {
         case R.id.post_msg:
         	startActivity(new Intent(this, PostMessageActivity.class));
@@ -43,5 +42,4 @@ public class BaseMenuActivity extends Activity {
             return super.onOptionsItemSelected(item);
 		}
 	}
-	
 }
