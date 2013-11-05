@@ -6,11 +6,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -60,7 +60,7 @@ public class CreateUserOrLoginActivity extends Activity {
 				LoginDTO ldto = new LoginDTO();
 				ldto.setLogin(login.toString());
 				ldto.setEmail(email.toString());
-				authService.login(ldto);
+				authService.login(ldto).execute();
 				return udto;
 			} catch (final GoogleJsonResponseException e) {
 				runOnUiThread(new Runnable() {
@@ -92,13 +92,12 @@ public class CreateUserOrLoginActivity extends Activity {
 		@Override
 		protected void onPostExecute(UserGetDTO dto) {
 			super.onPostExecute(dto);
-			
-			if (dto != null)
+			if (dto != null) {
 				Toast.makeText(CreateUserOrLoginActivity.this, "User Successfully created", Toast.LENGTH_SHORT).show();
-			
-			// TODO: 
-			// set some king of current session 
-			// move to all users
+				// this is a really basic way of keeping the currentUser Information
+				((TwitterLiteApplication)getApplication()).setCurrentUserKey((String)dto.get("userKey"));
+				CreateUserOrLoginActivity.this.startActivity(new Intent(CreateUserOrLoginActivity.this, PostMessageActivity.class));
+			}
 		}
 	}
 	
@@ -120,12 +119,7 @@ public class CreateUserOrLoginActivity extends Activity {
 				new CreateUserAndLoginTask(email, login).execute();
 			}
 		});
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
+		
+		getActionBar().hide();
 	}
 }
