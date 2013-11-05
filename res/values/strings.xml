@@ -8,5 +8,6 @@
     <string name="create_usr">Create User</string>
     <string name="e_mail">E-mail</string>
     <string name="create">Create</string>
+    <string name="user_msgs">user msgs</string>
 
 </resources>
