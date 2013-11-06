@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import butterknife.InjectView;
 import butterknife.Views;
@@ -28,6 +29,7 @@ public class PostMessageActivity extends BaseMenuActivity {
 
 	@InjectView(R.id.msg) EditText msgText;
 	@InjectView(R.id.post_msg_btn) Button btn;
+	@InjectView(R.id.progress) ProgressBar progress;
 	
 	private Message msgService;
 	private Boolean isUpdate;
@@ -44,6 +46,12 @@ public class PostMessageActivity extends BaseMenuActivity {
 			this.text = text;
 			this.activity = activity;
 			this.isUpdate = isUpdate;
+		}
+		
+		@Override
+		protected void onPreExecute() {
+			progress.setVisibility(View.VISIBLE);
+			btn.setVisibility(View.GONE);
 		}
 		
 		protected MessageGetDTO actionOnMessage() throws GoogleJsonResponseException, IOException {
@@ -81,6 +89,9 @@ public class PostMessageActivity extends BaseMenuActivity {
 					finish();
 				}
 			}
+			
+			progress.setVisibility(View.GONE);
+			btn.setVisibility(View.VISIBLE);
 		}
 	}
 	

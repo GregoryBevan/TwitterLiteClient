@@ -7,8 +7,10 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import butterknife.InjectView;
 import butterknife.Views;
@@ -28,6 +30,8 @@ public class CreateUserOrLoginActivity extends Activity {
 	@InjectView(R.id.email) EditText emailText;
 	@InjectView(R.id.create_button) Button create_btn;
 	@InjectView(R.id.login_button) Button login_btn;
+	@InjectView(R.id.button_group) ViewGroup btn_group;
+	@InjectView(R.id.progress) ProgressBar progress;
 	
 	/**
 	 * Service objects that manage requests to the backend.
@@ -50,8 +54,15 @@ public class CreateUserOrLoginActivity extends Activity {
 		}
 		
 		@Override
+		protected void onPreExecute() {
+			progress.setVisibility(View.VISIBLE);
+			btn_group.setVisibility(View.GONE);
+		}
+		
+		@Override
 		protected UserGetDTO doInBackground(Void... params) {
 			try {
+				
 				if (isCreate) {
 					CreateUserdDTO dto = new CreateUserdDTO();
 					dto.setLogin(login.toString());
@@ -78,6 +89,8 @@ public class CreateUserOrLoginActivity extends Activity {
 				((TwitterLiteApplication)getApplication()).setCurrentUserKey((String)dto.get("userKey"));
 				CreateUserOrLoginActivity.this.startActivity(new Intent(CreateUserOrLoginActivity.this, PostMessageActivity.class));
 			}
+			progress.setVisibility(View.GONE);
+			btn_group.setVisibility(View.VISIBLE);
 		}
 	}
 	

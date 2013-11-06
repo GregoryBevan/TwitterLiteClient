@@ -28,7 +28,9 @@
         <activity 
             android:name="com.twitterliteclient.PostMessageActivity" />
         <activity 
-            android:name="com.twitterliteclient.UserMessagesActivity" />
+            android:name="com.twitterliteclient.MessageListActivity" />
+        <activity 
+            android:name="com.twitterliteclient.UserListActivity" />
     </application>
 
 </manifest>

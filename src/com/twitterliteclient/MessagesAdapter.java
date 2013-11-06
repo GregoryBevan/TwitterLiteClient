@@ -25,6 +25,8 @@ public class MessagesAdapter extends ArrayAdapter<MessageGetDTO> {
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		ViewHolder holder;
+		
+		
 		if (convertView != null)
 			holder = (ViewHolder) convertView.getTag();
 		else {
@@ -38,6 +40,9 @@ public class MessagesAdapter extends ArrayAdapter<MessageGetDTO> {
 		holder.date.setText(date);
 		holder.text.setText(msg.getText());
 		holder.login.setText(msg.getSender().getLogin());
+		
+		if(msg.getIsMessageFromCurrentUser())
+			convertView.setBackgroundResource(android.R.color.holo_blue_dark);
 		
 		return convertView;
 	}

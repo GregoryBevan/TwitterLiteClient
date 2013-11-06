@@ -20,34 +20,40 @@ import com.appspot.twitterlitesample.message.Message;
 import com.appspot.twitterlitesample.message.model.MessageGetDTO;
 import com.appspot.twitterlitesample.message.model.MessagesCollection;
 import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.json.gson.GsonFactory;
 import com.twitterliteclient.ui.SwipeDismissListViewTouchListener;
 import com.twitterliteclient.util.ErrorUtil;
 
-public class UserMessagesActivity extends BaseMenuActivity {
+public class MessageListActivity extends BaseMenuActivity {
 	
-	@InjectView(R.id.user_msgs) ListView msgsList;
-	
-	private Message msgService;
 	private static final int PAGE_SIZE = 10;
 	private static int ON_MESSAGE_UPDATE_REQUEST_CODE = 1;
+	
+	@InjectView(R.id.msgs) ListView msgsList;
+	
 	private String currentCursor = null;
+	private Message msgService;
+	private MessagesAdapter mAdapter;
 	
-	MessagesAdapter mAdapter;
+	public static interface RequestAction {
+		public abstract MessagesCollection execute() throws IOException, GoogleJsonResponseException;
+	}
 	
-	private class GetUserMessagesTask extends AsyncTask<Void, Void, List<MessageGetDTO>> {
+	private class GetMessagesTask extends AsyncTask<Void, Void, List<MessageGetDTO>> {
 
-		private String senderKey;
+		private MessageListActivity context = MessageListActivity.this;
+		private RequestAction action;
 		
-		public GetUserMessagesTask(String senderKey) {
-			this.senderKey = senderKey;
+		public GetMessagesTask(RequestAction action) {
+			this.action = action;
 		}
 
 		@Override
 		protected List<MessageGetDTO> doInBackground(Void... params) {
 			try {
-				MessagesCollection msgs = msgService.user().messages().list(PAGE_SIZE, senderKey).execute();
-				UserMessagesActivity.this.currentCursor = msgs.getCursor();
+				MessagesCollection msgs = action.execute();
+				context.currentCursor = msgs.getCursor();
 				return msgs.getList();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -61,7 +67,7 @@ public class UserMessagesActivity extends BaseMenuActivity {
 			super.onPostExecute(dtos);
 			if (dtos != null) {
 				if (mAdapter == null) {
-					mAdapter = new MessagesAdapter(UserMessagesActivity.this, R.layout.message_item, dtos);
+					mAdapter = new MessagesAdapter(context, R.layout.message_item, dtos);
 					msgsList.setAdapter(mAdapter);
 				}
 			} else
@@ -95,7 +101,7 @@ public class UserMessagesActivity extends BaseMenuActivity {
 		@Override
 		protected void onPostExecute(Void result) {
 			super.onPostExecute(result);
-			Toast.makeText(UserMessagesActivity.this, "REMOVED MSG: " + text, Toast.LENGTH_SHORT).show();
+			Toast.makeText(MessageListActivity.this, "REMOVED MSG: " + text, Toast.LENGTH_SHORT).show();
 		}
 	}
 	
@@ -111,13 +117,52 @@ public class UserMessagesActivity extends BaseMenuActivity {
 		}
 	}
 	
+	public RequestAction dispathRequestAction(final String userKeyParam) {
+		String typeStr = getIntent().getStringExtra("list_type");
+		MSG_LIST_TYPE type = MSG_LIST_TYPE.valueOf(typeStr);
+		switch (type) {
+		case TIMELINE:
+			return new RequestAction() {
+				@Override
+				public MessagesCollection execute() throws IOException, GoogleJsonResponseException {
+					return msgService.user().timeline().list(PAGE_SIZE, userKeyParam).setCursor(currentCursor).execute();
+				}
+			};
+		case USER_MSGS:
+			return new RequestAction() {
+				@Override
+				public MessagesCollection execute() throws IOException, GoogleJsonResponseException {
+					return msgService.user().messages().list(PAGE_SIZE, userKeyParam).setCursor(currentCursor).execute();
+				}
+			};
+		case ALL:
+			return new RequestAction() {
+				@Override
+				public MessagesCollection execute() throws IOException, GoogleJsonResponseException {
+					return msgService.list(PAGE_SIZE).setCursor(currentCursor).execute();
+				}
+			};
+		default:
+			break;
+		}
+		return null;
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.user_msgs_layout);
+		setContentView(R.layout.msgs_list_layout);
 		this.msgService = new Message.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), null).build();
 		Views.inject(this);
-		String currentUserKey = getApp().getCurrentUserKey();
+		
+		final String currentUserKey = getApp().getCurrentUserKey();
+		String senderKey = getIntent().getStringExtra("senderKey");
+		
+		// retrieve messages
+		// this way we can control who owns the message list
+		// it would be better to pass more information to show at the top of the list
+		String userKeyParam = senderKey != null ? senderKey : currentUserKey;
+		new GetMessagesTask(dispathRequestAction(userKeyParam)).execute();
 		
         SwipeDismissListViewTouchListener touchListener =
                 new SwipeDismissListViewTouchListener(
@@ -125,7 +170,9 @@ public class UserMessagesActivity extends BaseMenuActivity {
                         new SwipeDismissListViewTouchListener.DismissCallbacks() {
                             @Override
                             public boolean canDismiss(int position) {
-                                return true;
+                            	MessageGetDTO dto = mAdapter.getItem(position);
+                            	// test if message can be deleted
+                            	return dto.getIsMessageFromCurrentUser();
                             }
 
                             @Override
@@ -135,7 +182,7 @@ public class UserMessagesActivity extends BaseMenuActivity {
                                 	String msgKey = dto.getMessageKey();
                                 	String text = dto.getText();
                                     mAdapter.remove(mAdapter.getItem(position));
-                                    new DeleteMessageTask(text, msgKey, UserMessagesActivity.this).execute();
+                                    new DeleteMessageTask(text, msgKey, MessageListActivity.this).execute();
                                 }
                                 mAdapter.notifyDataSetChanged();
                             }
@@ -149,17 +196,15 @@ public class UserMessagesActivity extends BaseMenuActivity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				MessageGetDTO dto = mAdapter.getItem(position);
-				Intent intent = new Intent(UserMessagesActivity.this, PostMessageActivity.class);
+				Intent intent = new Intent(MessageListActivity.this, PostMessageActivity.class);
 				Bundle b = new Bundle();
 				b.putString("text", dto.getText());
 				b.putString("key", dto.getMessageKey());
 				b.putInt("position", position);
 				intent.putExtra("dto", b);
 				intent.putExtra("isUpdate", true);
-				UserMessagesActivity.this.startActivityForResult(intent, ON_MESSAGE_UPDATE_REQUEST_CODE);
+				MessageListActivity.this.startActivityForResult(intent, ON_MESSAGE_UPDATE_REQUEST_CODE);
 			}
 		});
-		
-		new GetUserMessagesTask(currentUserKey).execute();
 	}
 }
