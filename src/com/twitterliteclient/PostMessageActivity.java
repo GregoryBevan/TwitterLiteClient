@@ -2,16 +2,11 @@ package com.twitterliteclient;
 
 import java.io.IOException;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.content.Context;
+import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
-import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -26,6 +21,7 @@ import com.appspot.twitterlitesample.message.model.MessageSetDTO;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.json.gson.GsonFactory;
+import com.twitterliteclient.util.ErrorUtil;
 
 
 public class PostMessageActivity extends BaseMenuActivity {
@@ -41,10 +37,12 @@ public class PostMessageActivity extends BaseMenuActivity {
 		private Editable text;
 		private String key; // this could be either a message key, on the senderKey
 		private Boolean isUpdate;
+		private Activity activity;
 
-		public MessageTask(String key, Editable text, Boolean isUpdate) {
+		public MessageTask(String key, Editable text, Activity activity, Boolean isUpdate) {
 			this.key = key;
 			this.text = text;
+			this.activity = activity;
 			this.isUpdate = isUpdate;
 		}
 		
@@ -62,32 +60,8 @@ public class PostMessageActivity extends BaseMenuActivity {
 		protected MessageGetDTO doInBackground(Void... params) {
 			try {
 				return actionOnMessage();
-			} catch (final GoogleJsonResponseException e) {
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						String msg;
-						try {
-							msg = new JSONObject(e.getContent()).getString("message");
-						} catch (JSONException e) {
-							msg = "The connection with the server failed. Please, try again.";
-						}
-
-						Toast.makeText(PostMessageActivity.this, msg, Toast.LENGTH_SHORT).show();
-					}
-				});
-			} catch (final IOException e) {
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						Toast.makeText(
-								PostMessageActivity.this,
-								"The connection with the server failed. Please, try again.",
-								Toast.LENGTH_SHORT).show();
-					}
-				});
-				Log.d("POST MESSAGE", e.getMessage(), e);
-				e.printStackTrace();
+			} catch(Exception e) {
+				ErrorUtil.handleEndpointsException(activity, e);
 			}
 			return null;
 		}
@@ -96,10 +70,16 @@ public class PostMessageActivity extends BaseMenuActivity {
 		protected void onPostExecute(MessageGetDTO dto) {
 			super.onPostExecute(dto);
 			if (dto != null || isUpdate) {
-				Toast.makeText(PostMessageActivity.this, "Message Successfully " + (isUpdate ? "updated: ":"posted: ") + text, Toast.LENGTH_SHORT).show();
+				Toast.makeText(activity, "Message Successfully " + (isUpdate ? "updated: ":"posted: ") + text, Toast.LENGTH_SHORT).show();
 				// could go to the UserMessagesList
-				if (isUpdate)
+				if (isUpdate) {
+					Intent returnIntent = new Intent();
+					Bundle extra = activity.getIntent().getBundleExtra("dto");
+					extra.putString("text", text.toString());
+					returnIntent.putExtra("dto", extra);
+					setResult(RESULT_OK, returnIntent);
 					finish();
+				}
 			}
 		}
 	}
@@ -108,12 +88,21 @@ public class PostMessageActivity extends BaseMenuActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.post_message_layout);
-		
+		Views.inject(this);
 		this.msgService = new Message.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), null).build();
 		
 		Intent intent = getIntent();
 		
-		this.isUpdate = intent.getBooleanExtra("isUpdate", Boolean.TRUE);
+		this.isUpdate = intent.getBooleanExtra("isUpdate", Boolean.FALSE);
+		Bundle dto = intent.getBundleExtra("dto");
+		final String msgKey;
+		if (dto != null) {
+			msgText.setText(dto.getString("text"));
+			btn.setText("Update");
+			msgKey = dto.getString("key");
+		}
+		else
+			msgKey = null;
 		
 		btn.setOnClickListener(new OnClickListener() {
 			@Override
@@ -128,22 +117,10 @@ public class PostMessageActivity extends BaseMenuActivity {
 				String currentUserKey = getApp().getCurrentUserKey();
 				
 				if (currentUserKey != null)
-					new MessageTask(currentUserKey, text, isUpdate).execute();
+					new MessageTask((isUpdate && msgKey != null) ? msgKey : currentUserKey, text, PostMessageActivity.this, isUpdate).execute();
 				else
 					startActivity(new Intent(PostMessageActivity.this, CreateUserOrLoginActivity.class));
 			}
 		});
-	}
-	
-	@Override
-	public View onCreateView(String name, Context context, AttributeSet attrs) {
-		Intent intent = getIntent();
-		Views.inject(this);
-		Bundle dto = intent.getBundleExtra("dto");
-		if (dto != null) {
-			msgText.setText(dto.getString("text"));
-			btn.setText("Update");
-		}
-		return super.onCreateView(name, context, attrs);
 	}
 }

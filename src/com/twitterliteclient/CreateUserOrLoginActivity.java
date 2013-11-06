@@ -1,16 +1,10 @@
 package com.twitterliteclient;
 
-import java.io.IOException;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -21,18 +15,19 @@ import butterknife.Views;
 
 import com.appspot.twitterlitesample.auth.Auth;
 import com.appspot.twitterlitesample.auth.model.LoginDTO;
+import com.appspot.twitterlitesample.auth.model.UserGetDTO;
 import com.appspot.twitterlitesample.user.User;
 import com.appspot.twitterlitesample.user.model.CreateUserdDTO;
-import com.appspot.twitterlitesample.user.model.UserGetDTO;
 import com.google.api.client.extensions.android.http.AndroidHttp;
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.json.gson.GsonFactory;
+import com.twitterliteclient.util.ErrorUtil;
 
 public class CreateUserOrLoginActivity extends Activity {
 
 	@InjectView(R.id.login) EditText loginText;
 	@InjectView(R.id.email) EditText emailText;
-	@InjectView(R.id.create_button) Button btn;
+	@InjectView(R.id.create_button) Button create_btn;
+	@InjectView(R.id.login_button) Button login_btn;
 	
 	/**
 	 * Service objects that manage requests to the backend.
@@ -40,51 +35,36 @@ public class CreateUserOrLoginActivity extends Activity {
 	public Auth authService;
 	public User userService;
 	
-	private class CreateUserAndLoginTask extends AsyncTask<Void, Void, UserGetDTO> {
+	private class CreateUserOrLoginTask extends AsyncTask<Void, Void, UserGetDTO> {
 		
 		private Editable login;
 		private Editable email;
+		private Activity activity;
+		private boolean isCreate;
 		
-		public CreateUserAndLoginTask(Editable email, Editable login) {
+		public CreateUserOrLoginTask(Editable email, Editable login, Activity activity, boolean isCreate) {
 			this.email = email;
 			this.login = login;
+			this.activity = activity;
+			this.isCreate = isCreate;
 		}
 		
 		@Override
 		protected UserGetDTO doInBackground(Void... params) {
 			try {
-				CreateUserdDTO dto = new CreateUserdDTO();
-				dto.setLogin(login.toString());
-				dto.setEmail(email.toString());
-				UserGetDTO udto = userService.create(dto).execute();
+				if (isCreate) {
+					CreateUserdDTO dto = new CreateUserdDTO();
+					dto.setLogin(login.toString());
+					dto.setEmail(email.toString());
+					userService.create(dto).execute();
+				}
+				
 				LoginDTO ldto = new LoginDTO();
 				ldto.setLogin(login.toString());
 				ldto.setEmail(email.toString());
-				authService.login(ldto).execute();
-				return udto;
-			} catch (final GoogleJsonResponseException e) {
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						String msg;
-						try {
-							msg = new JSONObject(e.getContent()).getString("message");
-						} catch (JSONException e) {
-							msg = "The connection with the server failed. Please, try again.";
-						}
-						
-						Toast.makeText(CreateUserOrLoginActivity.this, msg, Toast.LENGTH_SHORT).show();
-					}
-				});
-			} catch (final IOException e) {
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						Toast.makeText(CreateUserOrLoginActivity.this, "The connection with the server failed. Please, try again.", Toast.LENGTH_SHORT).show();
-					}
-				});
-				Log.d("LOGIN", e.getMessage(), e);
-				e.printStackTrace();
+				return authService.login(ldto).execute();
+			} catch (Exception e) {
+				ErrorUtil.handleEndpointsException(activity, e);
 			}
 			return null;
 		}
@@ -93,7 +73,7 @@ public class CreateUserOrLoginActivity extends Activity {
 		protected void onPostExecute(UserGetDTO dto) {
 			super.onPostExecute(dto);
 			if (dto != null) {
-				Toast.makeText(CreateUserOrLoginActivity.this, "User Successfully created", Toast.LENGTH_SHORT).show();
+				Toast.makeText(CreateUserOrLoginActivity.this, "User Successfully " + (isCreate ? "created":"logged in") , Toast.LENGTH_SHORT).show();
 				// this is a really basic way of keeping the currentUser Information
 				((TwitterLiteApplication)getApplication()).setCurrentUserKey((String)dto.get("userKey"));
 				CreateUserOrLoginActivity.this.startActivity(new Intent(CreateUserOrLoginActivity.this, PostMessageActivity.class));
@@ -111,14 +91,23 @@ public class CreateUserOrLoginActivity extends Activity {
 		
 		Views.inject(this);
 		
-		btn.setOnClickListener(new OnClickListener() {
+		OnClickListener listener = new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				boolean isCreate = true;
+				if (v.getId() == create_btn.getId())
+					isCreate = true;
+				else if (v.getId() == login_btn.getId())
+					isCreate = false;
+				
 				final Editable login = loginText.getText();
 				final Editable email = emailText.getText();
-				new CreateUserAndLoginTask(email, login).execute();
+				new CreateUserOrLoginTask(email, login, CreateUserOrLoginActivity.this, isCreate).execute();
 			}
-		});
+		};
+		
+		create_btn.setOnClickListener(listener);
+		login_btn.setOnClickListener(listener);
 		
 		getActionBar().hide();
 	}

@@ -1,7 +1,7 @@
 .metadata/
 .settings/
 .classpath
-./apt_generated
+.apt_generated/
 
 *~
 .DS_Store

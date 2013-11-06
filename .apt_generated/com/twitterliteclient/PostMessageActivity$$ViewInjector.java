@@ -9,18 +9,18 @@ public class PostMessageActivity$$ViewInjector {
     View view;
     view = finder.findById(source, 2131230727);
     if (view == null) {
-      throw new IllegalStateException("Required view with id '2131230727' for field 'btn' was not found. If this field binding is optional add '@Optional'.");
-    }
-    target.btn = (android.widget.Button) view;
-    view = finder.findById(source, 2131230726);
-    if (view == null) {
-      throw new IllegalStateException("Required view with id '2131230726' for field 'msgText' was not found. If this field binding is optional add '@Optional'.");
+      throw new IllegalStateException("Required view with id '2131230727' for field 'msgText' was not found. If this field binding is optional add '@Optional'.");
     }
     target.msgText = (android.widget.EditText) view;
+    view = finder.findById(source, 2131230728);
+    if (view == null) {
+      throw new IllegalStateException("Required view with id '2131230728' for field 'btn' was not found. If this field binding is optional add '@Optional'.");
+    }
+    target.btn = (android.widget.Button) view;
   }
 
   public static void reset(com.twitterliteclient.PostMessageActivity target) {
-    target.btn = null;
     target.msgText = null;
+    target.btn = null;
   }
 }
