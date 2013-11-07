@@ -25,5 +25,8 @@
     <string name="all_users">All users</string>
     <string name="all_messages">All Messages</string>
     <string name="logout">Logout</string>
+    <string name="follow">Follow</string>
+    <string name="unfollow">UnFollow</string>
+    <string name="no_messages">No messages</string>
 
 </resources>

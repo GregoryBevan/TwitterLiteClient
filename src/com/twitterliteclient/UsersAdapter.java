@@ -2,11 +2,12 @@ package com.twitterliteclient;
 
 import java.util.List;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import butterknife.InjectView;
 import butterknife.Views;
@@ -15,8 +16,11 @@ import com.appspot.twitterlitesample.user.model.UserGetDTO;
 
 public class UsersAdapter extends ArrayAdapter<UserGetDTO> {
 
-	public UsersAdapter(Context context, int resource, List<UserGetDTO> dtos) {
+	UserListActivity context;
+	
+	public UsersAdapter(UserListActivity context, int resource, List<UserGetDTO> dtos) {
 		super(context, resource, dtos);
+		this.context = context;
 	}
 	
 	@Override
@@ -38,20 +42,28 @@ public class UsersAdapter extends ArrayAdapter<UserGetDTO> {
 		String lastName = user.getLastName();
 		lastName = lastName != null ? lastName : "";
 		holder.firstName.setText( (firstName != null ? firstName + " " : "Anonymous") + lastName);
-		if (user.getIsFollowedByCurrentUser())
-			convertView.setBackgroundResource(android.R.color.holo_purple);
+		
+		if (user.getIsFollowedByCurrentUser()) {
+			holder.follow_action.setText(R.string.unfollow);
+		}
+		else {
+			holder.follow_action.setText(R.string.follow);
+		}
+		
+		holder.follow_action.setOnClickListener(context.setFollowActionButtonOnClickListener(user, holder.follow_action, holder.progress, position));
 		
 		return convertView;
 	}
 	
 	class ViewHolder {
-		@InjectView(R.id.login) TextView		login;
-		@InjectView(R.id.email) TextView		email;
-		@InjectView(R.id.name) TextView	firstName;
+		@InjectView(R.id.login) TextView			login;
+		@InjectView(R.id.email) TextView			email;
+		@InjectView(R.id.name) TextView				firstName;
+		@InjectView(R.id.follow_action_btn) Button	follow_action;
+		@InjectView(R.id.progress) ProgressBar		progress;
 		
 		public ViewHolder(View view) {
 			Views.inject(this, view);
 		}
 	}
-
 }

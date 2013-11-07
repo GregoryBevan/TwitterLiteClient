@@ -9,9 +9,12 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import butterknife.InjectView;
 import butterknife.Views;
@@ -31,10 +34,12 @@ public class MessageListActivity extends BaseMenuActivity {
 	private static int ON_MESSAGE_UPDATE_REQUEST_CODE = 1;
 	
 	@InjectView(R.id.msgs) ListView msgsList;
+	@InjectView(R.id.no_msgs_placeholder) TextView noMsgsView;
 	
 	private String currentCursor = null;
 	private Message msgService;
 	private MessagesAdapter mAdapter;
+	private MSG_LIST_TYPE type;
 	
 	public static interface RequestAction {
 		public abstract MessagesCollection execute() throws IOException, GoogleJsonResponseException;
@@ -67,8 +72,15 @@ public class MessageListActivity extends BaseMenuActivity {
 			super.onPostExecute(dtos);
 			if (dtos != null) {
 				if (mAdapter == null) {
+					if (dtos.size() == 0)
+						noMsgsView.setVisibility(View.VISIBLE);
 					mAdapter = new MessagesAdapter(context, R.layout.message_item, dtos);
 					msgsList.setAdapter(mAdapter);
+				}
+				else {
+					mAdapter.addAll(dtos);
+					mAdapter.notifyDataSetChanged();
+					Toast.makeText(context, "NEXT MESSAGE BATCH LOADED FROM SERVER", Toast.LENGTH_SHORT).show();
 				}
 			} else
 				Log.d("USER MESSAGES", "PROBLEM ON ADAPTER");
@@ -118,8 +130,6 @@ public class MessageListActivity extends BaseMenuActivity {
 	}
 	
 	public RequestAction dispathRequestAction(final String userKeyParam) {
-		String typeStr = getIntent().getStringExtra("list_type");
-		MSG_LIST_TYPE type = MSG_LIST_TYPE.valueOf(typeStr);
 		switch (type) {
 		case TIMELINE:
 			return new RequestAction() {
@@ -154,14 +164,14 @@ public class MessageListActivity extends BaseMenuActivity {
 		setContentView(R.layout.msgs_list_layout);
 		this.msgService = new Message.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), null).build();
 		Views.inject(this);
-		
+		this.type = MSG_LIST_TYPE.valueOf(getIntent().getStringExtra("list_type"));
 		final String currentUserKey = getApp().getCurrentUserKey();
 		String senderKey = getIntent().getStringExtra("senderKey");
 		
 		// retrieve messages
 		// this way we can control who owns the message list
 		// it would be better to pass more information to show at the top of the list
-		String userKeyParam = senderKey != null ? senderKey : currentUserKey;
+		final String userKeyParam = senderKey != null ? senderKey : currentUserKey;
 		new GetMessagesTask(dispathRequestAction(userKeyParam)).execute();
 		
         SwipeDismissListViewTouchListener touchListener =
@@ -190,21 +200,44 @@ public class MessageListActivity extends BaseMenuActivity {
         msgsList.setOnTouchListener(touchListener);
         // Setting this scroll listener is required to ensure that during ListView scrolling,
         // we don't look for swipes.
-        msgsList.setOnScrollListener(touchListener.makeScrollListener());
         
-		msgsList.setOnItemClickListener(new OnItemClickListener() {
+        final OnScrollListener dismissCompliantScrollListener = touchListener.makeScrollListener();
+        
+        OnScrollListener endlessListScrollListener = new AbsListView.OnScrollListener() {
+			
 			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				MessageGetDTO dto = mAdapter.getItem(position);
-				Intent intent = new Intent(MessageListActivity.this, PostMessageActivity.class);
-				Bundle b = new Bundle();
-				b.putString("text", dto.getText());
-				b.putString("key", dto.getMessageKey());
-				b.putInt("position", position);
-				intent.putExtra("dto", b);
-				intent.putExtra("isUpdate", true);
-				MessageListActivity.this.startActivityForResult(intent, ON_MESSAGE_UPDATE_REQUEST_CODE);
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+				dismissCompliantScrollListener.onScrollStateChanged(view, scrollState);
 			}
-		});
+			
+			@Override
+			public void onScroll(AbsListView view, int firstVisible, int visibleCount, int totalCount) {
+				boolean loadMore = firstVisible + visibleCount >= totalCount;
+
+				if (loadMore) {
+					new GetMessagesTask(dispathRequestAction(userKeyParam)).execute();
+				}
+			}
+		};
+        
+        msgsList.setOnScrollListener(endlessListScrollListener);
+        
+        // only current user messages are editable
+        if (this.type == MSG_LIST_TYPE.USER_MSGS && senderKey == null) {
+			msgsList.setOnItemClickListener(new OnItemClickListener() {
+				@Override
+				public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+					MessageGetDTO dto = mAdapter.getItem(position);
+					Intent intent = new Intent(MessageListActivity.this, PostMessageActivity.class);
+					Bundle b = new Bundle();
+					b.putString("text", dto.getText());
+					b.putString("key", dto.getMessageKey());
+					b.putInt("position", position);
+					intent.putExtra("dto", b);
+					intent.putExtra("isUpdate", true);
+					MessageListActivity.this.startActivityForResult(intent, ON_MESSAGE_UPDATE_REQUEST_CODE);
+				}
+			});
+        }
 	}
 }

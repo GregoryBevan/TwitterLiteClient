@@ -2,45 +2,56 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="10dp"
+    android:background="@android:color/white"
     android:paddingLeft="14dp"
     android:paddingRight="14dp"
-    android:background="@android:color/white">
-    
+    android:paddingTop="10dp" >
+
     <TextView
-        android:id="@+id/email" 
+        android:id="@+id/email"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-       	
         android:text="@string/email_placeholder"
         android:textColor="@android:color/black"
-        android:textSize="12sp"
-        />
-    
+        android:textSize="12sp" />
+
     <TextView
-        android:id="@+id/login" 
+        android:id="@+id/login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-       	
-       	android:layout_toRightOf="@+id/email"
-       	android:layout_marginLeft="10dp"
-       	
+        android:layout_marginLeft="10dp"
+        android:layout_toRightOf="@+id/email"
         android:text="@string/login_placeholder"
         android:textColor="@android:color/darker_gray"
-        android:textSize="12sp"
-        />
-    
+        android:textSize="12sp" />
+
     <TextView
         android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        
-        android:layout_marginTop="20dp"
         android:layout_marginBottom="10dp"
-        
+        android:layout_marginTop="20dp"
         android:text="@string/user_firstname_placeholder"
         android:textColor="@android:color/black"
         android:textSize="16sp"
         android:textStyle="bold" />
-    
+
+    <Button
+        android:id="@+id/follow_action_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:text="@string/follow" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="40dip"
+        android:layout_height="40dip"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="20dp"
+        android:visibility="gone" />
+
 </RelativeLayout>

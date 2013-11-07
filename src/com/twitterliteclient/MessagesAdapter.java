@@ -26,7 +26,6 @@ public class MessagesAdapter extends ArrayAdapter<MessageGetDTO> {
 	public View getView(int position, View convertView, ViewGroup parent) {
 		ViewHolder holder;
 		
-		
 		if (convertView != null)
 			holder = (ViewHolder) convertView.getTag();
 		else {
