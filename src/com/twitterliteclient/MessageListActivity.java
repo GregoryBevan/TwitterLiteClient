@@ -165,6 +165,7 @@ public class MessageListActivity extends BaseMenuActivity {
 		this.msgService = new Message.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), null).build();
 		Views.inject(this);
 		this.type = MSG_LIST_TYPE.valueOf(getIntent().getStringExtra("list_type"));
+		getActionBar().setTitle(this.type.toString());
 		final String currentUserKey = getApp().getCurrentUserKey();
 		String senderKey = getIntent().getStringExtra("senderKey");
 		

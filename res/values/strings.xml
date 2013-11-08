@@ -28,5 +28,8 @@
     <string name="follow">Follow</string>
     <string name="unfollow">UnFollow</string>
     <string name="no_messages">No messages</string>
+    <string name="firstname">FirstName</string>
+    <string name="lastname">LastName</string>
+    <string name="update">Update</string>
 
 </resources>

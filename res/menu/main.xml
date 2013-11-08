@@ -22,6 +22,9 @@
         android:id="@+id/all_msgs"
         android:title="@string/all_messages"/>
     <item
+        android:id="@+id/edit_profile"
+        android:title="Edit Profile"/>
+    <item
         android:id="@+id/logout"
         android:title="@string/logout"/>
 

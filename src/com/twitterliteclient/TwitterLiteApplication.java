@@ -2,14 +2,21 @@ package com.twitterliteclient;
 
 import android.app.Application;
 
+import com.appspot.twitterlitesample.auth.model.UserGetDTO;
+
 public class TwitterLiteApplication extends Application {
-	private String currentUserKey = null;
+	private UserGetDTO currentUser = null;
 
 	public String getCurrentUserKey() {
-		return currentUserKey;
+		return currentUser.getUserKey();
+	}
+	
+	public UserGetDTO getCurrentUser() {
+		return currentUser;
+	}
+	
+	public void setCurrentUser(UserGetDTO dto) {
+		this.currentUser = dto;
 	}
 
-	public void setCurrentUserKey(String currentUserKey) {
-		this.currentUserKey = currentUserKey;
-	}
 }

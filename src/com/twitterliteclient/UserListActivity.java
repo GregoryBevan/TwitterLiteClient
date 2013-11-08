@@ -192,7 +192,6 @@ public class UserListActivity extends BaseMenuActivity {
 		Views.inject(this);
 		
 		this.type = USER_LIST_TYPE.valueOf(getIntent().getExtras().getString("list_type"));
-		
 		getActionBar().setTitle(this.type.toString());
 		
 		final String currentUserKey = getApp().getCurrentUserKey();
@@ -201,6 +200,18 @@ public class UserListActivity extends BaseMenuActivity {
 		
 		// retrieve users
 		new GetUsersTask(dispathRequestAction(userKeyParam)).execute();
+		
+		usersList.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				
+				UserGetDTO dto = mAdapter.getItem(position);
+				Intent intent = new Intent(UserListActivity.this, MessageListActivity.class);
+				intent.putExtra("list_type", MSG_LIST_TYPE.USER_MSGS.toString());
+				intent.putExtra("senderKey", dto.getUserKey());
+				startActivity(intent);
+			}
+		});
 		
         OnScrollListener endlessListScrollListener = new AbsListView.OnScrollListener() {
 			
@@ -222,17 +233,5 @@ public class UserListActivity extends BaseMenuActivity {
 		};
 		
 		usersList.setOnScrollListener(endlessListScrollListener);
-		
-		usersList.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				
-				UserGetDTO dto = mAdapter.getItem(position);
-				Intent intent = new Intent(UserListActivity.this, MessageListActivity.class);
-				intent.putExtra("list_type", MSG_LIST_TYPE.USER_MSGS.toString());
-				intent.putExtra("senderKey", dto.getUserKey());
-				startActivity(intent);
-			}
-		});
 	}
 }

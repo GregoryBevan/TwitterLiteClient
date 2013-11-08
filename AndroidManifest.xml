@@ -28,6 +28,8 @@
         <activity 
             android:name="com.twitterliteclient.PostMessageActivity" />
         <activity 
+            android:name="com.twitterliteclient.EditUserActivity" />
+        <activity 
             android:name="com.twitterliteclient.MessageListActivity" />
         <activity 
             android:name="com.twitterliteclient.UserListActivity" />

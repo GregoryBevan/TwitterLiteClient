@@ -60,7 +60,7 @@ public class BaseMenuActivity extends Activity {
 		protected void onPostExecute(Void result) {
 			super.onPostExecute(result);
 			Toast.makeText(BaseMenuActivity.this, "Logged out", Toast.LENGTH_SHORT).show();
-			getApp().setCurrentUserKey(null);
+			getApp().setCurrentUser(null);
 		}
 	}
 
@@ -70,6 +70,9 @@ public class BaseMenuActivity extends Activity {
 		switch (item.getItemId()) {
 		case R.id.post_msg:
 			startActivity(new Intent(this, PostMessageActivity.class));
+			return true;
+		case R.id.edit_profile:
+			startActivity(new Intent(this, EditUserActivity.class));
 			return true;
 		case R.id.timeline:
 			intent = new Intent(this, MessageListActivity.class);

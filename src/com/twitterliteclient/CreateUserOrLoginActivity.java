@@ -86,7 +86,7 @@ public class CreateUserOrLoginActivity extends Activity {
 			if (dto != null) {
 				Toast.makeText(CreateUserOrLoginActivity.this, "User Successfully " + (isCreate ? "created":"logged in") , Toast.LENGTH_SHORT).show();
 				// this is a really basic way of keeping the currentUser Information
-				((TwitterLiteApplication)getApplication()).setCurrentUserKey((String)dto.get("userKey"));
+				((TwitterLiteApplication)getApplication()).setCurrentUser(dto);
 				CreateUserOrLoginActivity.this.startActivity(new Intent(CreateUserOrLoginActivity.this, PostMessageActivity.class));
 			}
 			progress.setVisibility(View.GONE);
