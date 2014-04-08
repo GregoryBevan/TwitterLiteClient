@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="TwitterLiteCLient_custom" default="-pre-compile">
+	
+	<!-- Manage key store -->
+	<property environment="env" />
+	<property name="key.store" value="${env.KEYSTORE}/keystore/twitterlite" />
+	<property name="key.alias" value="twitterlite" />
+	<property name="key.store.password" value="twitterlite" />
+	<property name="key.alias.password" value="twitterlite" />
+	
+	<!-- Manage annotation processing -->
 	<property name="apt_generated.dir" value="${basedir}/.apt_generated" />
 	<property name="processor"
 	          value="butterknife.internal.InjectViewProcessor" />
