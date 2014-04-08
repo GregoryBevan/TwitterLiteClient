@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="TwitterLiteCLient_custom" default="-pre-compile">
+	<property name="apt_generated.dir" value="${basedir}/.apt_generated" />
+
+	<target name="-pre-clean">
+		<delete dir="${apt_generated.dir}" />
+		<mkdir dir="${apt_generated.dir}" />
+	</target>
+
+	<target name="-pre-compile">
+		<javac encoding="${java.encoding}"
+		       source="${java.source}"
+		       target="${java.target}"
+		       debug="true"
+		       extdirs=""
+		       includeantruntime="false"
+		       destdir="${out.classes.absolute.dir}"
+		       bootclasspathref="project.target.class.path"
+		       verbose="${verbose}"
+		       fork="${need.javac.fork}">
+			<src path="${source.absolute.dir}" />
+			<src path="${gen.absolute.dir}" />
+			<classpath>
+				<fileset dir="libs" includes="*.jar" />
+			</classpath>
+			<compilerarg line="${java.compilerargs}" />
+			<compilerarg line="-processorpath ${processorpath}" />
+		</javac>
+	</target>
+
+</project>
