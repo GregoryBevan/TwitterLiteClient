@@ -9,3 +9,5 @@ bin/
 .DS_Store
 Thumbs.db
 *.class
+/build.xml
+/local.properties
