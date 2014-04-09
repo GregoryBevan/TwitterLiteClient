@@ -31,5 +31,6 @@
     <string name="firstname">FirstName</string>
     <string name="lastname">LastName</string>
     <string name="update">Update</string>
+    <string name="build_by">Build by greg</string>
 
 </resources>
